@@ -1,9 +1,15 @@
-const { createServer } = require("http");
-const express = require("express");
-const ws = require("ws");
-const { WebSocketServer } = ws;
+import { createServer } from "http";
+import db from "./db/conn.js";
+import express from "express";
+import ws, { WebSocketServer } from "ws";
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
-const port = 3000;
+const __dirname = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: resolve(__dirname, "../.env") });
+
+const port = process.env.SERVER_PORT;
 const app = express();
 
 const server = createServer(app);
@@ -24,6 +30,12 @@ function broadcast(msg) {
     }
   }
 }
+
+app.get("/", async (_, res) => {
+  let coll = db.collection("users");
+  let results = await coll.find({}).limit(50).toArray();
+  res.send(results).status;
+});
 
 server.listen(port, () => {
   console.log(`Server running on port: ${port}`);
