@@ -6,6 +6,7 @@ import ws, { WebSocketServer } from "ws";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
+import { haversine } from "./haversine.js";
 /** @typedef {import('../types.d.ts').User} User */
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -52,9 +53,55 @@ app.post("/users", async (req, res) => {
   await db.collection("users").insertOne({
     name: user.name,
     address: user.address,
-    phone: user.phone,
+    phone: user.phone.toString(),
   });
   res.status(201).send("User added");
+});
+
+app.post("/location", async (req, res) => {
+  const { phone, latitude, longitude } = req.body;
+  const users = db.collection("users");
+
+  const result = await users.findOneAndUpdate(
+    { phone },
+    { $set: { latitude, longitude } },
+    { returnDocument: "after" },
+  );
+
+  if (!result) {
+    return res.status(404).send("User not found");
+  }
+
+  res.status(200).json(result);
+});
+
+app.get("/nearby/:phone", async (req, res) => {
+  const phone = req.params.phone.toString();
+  const users = db.collection("users");
+  const currentUser = await users.findOne({ phone });
+  if (!currentUser) {
+    res.status(404).send("User not found");
+    return;
+  }
+
+  const allUsers = await users.find({}).toArray();
+  const nearby = allUsers.filter((u) => {
+    if (
+      currentUser.phone == u.phone ||
+      u.latitude == null ||
+      u.longitude == null
+    )
+      return false;
+    const dist = haversine(
+      currentUser.latitude,
+      currentUser.longitude,
+      u.latitude,
+      u.longitude,
+    );
+    return dist / 1000 < 6; // 6 kms
+  });
+
+  res.json(nearby);
 });
 
 server.listen(port, () => {
