@@ -27,18 +27,11 @@ function Location() {
     return <p>Getting your location...</p>;
 
   return (
-    <div
-      style={{
-        height: "400px",
-        width: "400px",
-        borderRadius: "12px",
-        overflow: "hidden",
-      }}
-    >
+    <div className="h-[400px] w-[400px] rounded-xl overflow-hidden shadow-md">
       <MapContainer
         center={[coords.latitude, coords.longitude]}
         zoom={15}
-        style={{ height: "100%", width: "100%" }}
+        className="h-full w-full"
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <Marker

@@ -2,7 +2,6 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./pages/home";
 import Messenger from "./components/messenger";
 import Location from "./pages/location";
-import "./App.css";
 
 function App() {
   return (
