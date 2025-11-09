@@ -2,20 +2,58 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    if (email.trim() && password.trim()) {
-      navigate("/message", { state: { email } });
-    } else {
-      alert("Please enter both email and password.");
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!phone.trim() || !password.trim()) {
+      setError("Please enter both phone and password.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phone, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Login failed");
+      }
+
+      // Store token and user info
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Navigate to messenger
+      navigate("/message", {
+        state: {
+          user: data.user,
+          token: data.token,
+        },
+      });
+    } catch (err) {
+      setError(err.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    alert("Google login feature coming soon!");
+  const handleRegister = () => {
+    navigate("/register");
   };
 
   return (
@@ -25,48 +63,46 @@ function Login() {
           Nature Nexus
         </h1>
 
-        <input
-          type="email"
-          placeholder="Enter your Gmail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
 
-        <input
-          type="password"
-          placeholder="Enter your Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-
-        <button
-          onClick={handleLogin}
-          className="w-full bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
-        >
-          Login
-        </button>
-
-        <div className="flex items-center my-6">
-          <div className="flex-grow border-t border-gray-300"></div>
-          <span className="mx-3 text-gray-500 text-sm">or</span>
-          <div className="flex-grow border-t border-gray-300"></div>
-        </div>
-
-        <button
-          className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-          onClick={handleGoogleLogin}
-        >
-          <img
-            src="https://developers.google.com/identity/images/g-logo.png"
-            alt="Google Logo"
-            className="w-5 h-5"
+        <form onSubmit={handleLogin}>
+          <input
+            type="tel"
+            placeholder="Enter your Phone Number"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+            disabled={loading}
           />
-          <span className="font-medium text-gray-700">
-            Continue with Google
-          </span>
-        </button>
+          <input
+            type="password"
+            placeholder="Enter your Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-green-500"
+            disabled={loading}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        <div className="mt-4 text-center">
+          <button
+            onClick={handleRegister}
+            className="text-green-600 hover:text-green-800 font-medium"
+          >
+            Don't have an account? Register
+          </button>
+        </div>
       </div>
     </div>
   );
