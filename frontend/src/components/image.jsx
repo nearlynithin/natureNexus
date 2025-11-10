@@ -1,82 +1,47 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 
-export default function ImageViewer({ x1, y1, x2, y2 }) {
-  const [boxes, setBoxes] = useState([
-    { label: "found", box: [x1, y1, x2, y2] },
-  ]);
-  const [imageDimensions, setImageDimensions] = useState({
-    width: 0,
-    height: 0,
-  });
+export default function ImageViewer({ image, boxes = [] }) {
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
 
-  const drawBoundingBoxes = () => {
-    const canvas = canvasRef.current;
-    const image = imageRef.current;
-
-    if (!canvas || !image || !image.complete) return;
-
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
-
-    setImageDimensions({
-      width: image.naturalWidth,
-      height: image.naturalHeight,
-    });
-
-    ctx.drawImage(image, 0, 0);
-
-    boxes.forEach((item) => {
-      const [x1, y1, x2, y2] = item.box;
-      const width = x2 - x1;
-      const height = y2 - y1;
-
-      ctx.strokeStyle = "#ef4444";
-      ctx.lineWidth = 3;
-      ctx.strokeRect(x1, y1, width, height);
-
-      ctx.font = "bold 16px Arial";
-      const textMetrics = ctx.measureText(item.label);
-      const textHeight = 20;
-      const padding = 4;
-
-      ctx.fillStyle = "#ef4444";
-      ctx.fillRect(
-        x1,
-        y1 - textHeight - padding,
-        textMetrics.width + padding * 2,
-        textHeight + padding,
-      );
-
-      ctx.fillStyle = "white";
-      ctx.fillText(item.label, x1 + padding, y1 - padding - 4);
-    });
-  };
-
   useEffect(() => {
     const img = imageRef.current;
-    if (img) img.onload = drawBoundingBoxes;
-  }, [boxes]);
+    const canvas = canvasRef.current;
+    if (!img || !canvas) return;
+    const ctx = canvas.getContext("2d");
+
+    const draw = () => {
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+
+      boxes.forEach(({ label, box }) => {
+        const [x1, y1, x2, y2] = box;
+        const width = x2 - x1;
+        const height = y2 - y1;
+
+        ctx.strokeStyle = "#ef4444";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x1, y1, width, height);
+
+        ctx.font = "bold 16px Arial";
+        ctx.fillStyle = "#ef4444";
+        const textWidth = ctx.measureText(label).width;
+        ctx.fillRect(x1, y1 - 20, textWidth + 8, 20);
+        ctx.fillStyle = "white";
+        ctx.fillText(label, x1 + 4, y1 - 6);
+      });
+    };
+
+    if (img.complete) draw();
+    else img.onload = draw;
+  }, [boxes, image]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <img
-        ref={imageRef}
-        src="test.jpg" // change to your image path
-        alt="Detected"
-        className="max-w-full h-auto hidden"
-      />
+    <div className="p-4">
+      <img ref={imageRef} src={image} alt="" className="hidden" />
       <canvas ref={canvasRef} className="border border-gray-300" />
-      <div className="max-w-6xl mx-auto">
-        {imageDimensions.width > 0 && (
-          <p className="text-sm text-gray-600">
-            Image dimensions: {imageDimensions.width} × {imageDimensions.height}
-          </p>
-        )}
-      </div>
     </div>
   );
 }
