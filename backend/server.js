@@ -2,6 +2,7 @@
 import { createServer } from "http";
 import db from "./db/conn.js";
 import express from "express";
+import multer from "multer";
 import ws, { WebSocketServer } from "ws";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
@@ -11,6 +12,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import { ObjectId } from "mongodb";
+import { detectObjectsInImage } from "./image.js";
 
 /** @typedef {import('../types.d.ts').User} User */
 
@@ -19,8 +21,8 @@ dotenv.config({ path: resolve(__dirname, "../.env") });
 
 const port = process.env.SERVER_PORT;
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this";
-
 const app = express();
+const upload = multer({ dest: "uploads/" });
 
 // Enable CORS
 app.use(cors());
@@ -562,6 +564,19 @@ app.get("/chat/users", authenticateToken, async (req, res) => {
     );
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch users" });
+  }
+});
+
+// Image object Detection
+app.post("/detect", upload.single("image"), async (req, res) => {
+  try {
+    console.log("Sending image ...");
+    const result = await detectObjectsInImage(req.file.path);
+    // return     { label: b.label, box: [absX1, absY1, absX2, absY2] };
+    res.json({ success: true, result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 

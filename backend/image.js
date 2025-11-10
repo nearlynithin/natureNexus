@@ -17,7 +17,7 @@ function getImageDimensions(buffer) {
   return sizeOf(buffer);
 }
 
-async function detectObjectsInImage(filePath) {
+export async function detectObjectsInImage(filePath) {
   const imageBuffer = fs.readFileSync(filePath);
   const base64Data = imageBuffer.toString("base64");
   const mimeType = "image/png";
@@ -61,8 +61,5 @@ async function detectObjectsInImage(filePath) {
 
   console.log("Image size:", width, height);
   console.log("Converted bounding boxes:", converted);
+  return { width, height, boxes: converted };
 }
-
-detectObjectsInImage(path.resolve("/tmp/test.jpg")).catch((err) =>
-  console.error(err),
-);
