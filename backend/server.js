@@ -101,6 +101,7 @@ wss.on("connection", (client, req) => {
           senderRole: senderInfo.role,
           recipientId: data.recipientId || null,
           content: data.content,
+          image: data.image || null,
           timestamp: new Date(),
           isGroupMessage: !data.recipientId,
           status: needsApproval ? "pending" : "approved",
@@ -116,6 +117,7 @@ wss.on("connection", (client, req) => {
           senderRole: senderInfo.role,
           recipientId: data.recipientId || null,
           content: data.content,
+          image: data.image || null,
           timestamp: new Date().toISOString(),
           status: messageDoc.status,
         };

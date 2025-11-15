@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 function Messenger() {
   const [connStatus, setConnStatus] = useState(false);
   const [message, setMessage] = useState("");
+  const [image, setImage] = useState(null);
   const [msgList, setMsgList] = useState([]);
   const [pendingMessages, setPendingMessages] = useState([]);
   const [users, setUsers] = useState([]);
@@ -148,6 +149,7 @@ function Messenger() {
             senderName: msg.senderName,
             senderRole: msg.senderRole,
             content: msg.content,
+            image: msg.image,
             timestamp: msg.timestamp,
             recipientId: msg.recipientId,
             status: msg.status || "approved",
@@ -195,10 +197,12 @@ function Messenger() {
         type: "message",
         content: message.trim(),
         recipientId: selectedUser?.id || null,
+        image: image || null,
       };
 
       socketRef.current.send(JSON.stringify(payload));
       setMessage("");
+      setImage(null);
     }
   };
 
@@ -403,6 +407,13 @@ function Messenger() {
                         </span>
                         <p className="text-sm text-gray-200 mt-1">
                           {msg.content}
+                          {msg.image && (
+                            <img
+                              src={msg.image}
+                              className="mt-2 max-h-56 rounded-lg border border-[#08CB00]/30"
+                              alt=""
+                            />
+                          )}
                         </p>
                       </div>
                     </div>
@@ -465,6 +476,13 @@ function Messenger() {
                       <p className="text-sm break-words whitespace-pre-wrap">
                         {msg.content}
                       </p>
+                      {msg.image && (
+                        <img
+                          src={msg.image}
+                          className="mt-2 max-h-56 rounded-lg border border-[#08CB00]/30"
+                          alt=""
+                        />
+                      )}
                       <span
                         className={`text-xs mt-1 block ${isOwnMessage ? "opacity-70" : "opacity-50"}`}
                       >
@@ -496,6 +514,18 @@ function Messenger() {
             }
             className="flex-1 bg-[#0a0a0a] text-[#EEEEEE] border border-[#08CB00] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#08CB00] placeholder-gray-500"
             disabled={!connStatus}
+          />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = () => setImage(reader.result);
+              reader.readAsDataURL(file);
+            }}
+            className="text-sm text-gray-400"
           />
           <button
             type="submit"
