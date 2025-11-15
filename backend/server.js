@@ -12,7 +12,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import { ObjectId } from "mongodb";
-import { detectObjectsInImage } from "./image.js";
+import { detectObjectsInImage, detectObjectsInImageBase64 } from "./image.js";
 
 /** @typedef {import('../types.d.ts').User} User */
 
@@ -39,6 +39,7 @@ app.use((req, res, next) => {
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
+  console.log("HIT:", req.method, req.url);
   next();
 });
 
@@ -579,6 +580,57 @@ app.post("/detect", upload.single("image"), async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/sightings/report", authenticateToken, async (req, res) => {
+  try {
+    const { content, image, latitude, longitude } = req.body;
+
+    const doc = {
+      senderId: req.user.userId,
+      senderName: req.user.name,
+      senderRole: "user",
+      content,
+      image,
+      latitude,
+      longitude,
+      status: "pending",
+      timestamp: new Date(),
+    };
+
+    const saved = await db.collection("sightings").insertOne(doc);
+
+    let detection;
+    if (process.env.USE_STUB === "1") {
+      console.log("not using gemini");
+      detection = { result: [{ label: "animal" }] };
+    } else {
+      detection = await detectObjectsInImageBase64(image);
+    }
+
+    const foundAnimal =
+      Array.isArray(detection.result) &&
+      detection.result.some((r) => r.label === "animal");
+
+    if (foundAnimal) {
+      console.log("Found animal, broadcasting...");
+      broadcast(
+        JSON.stringify({
+          type: "animal_sighting",
+          id: saved.insertedId.toString(),
+          senderName: req.user.name,
+          latitude,
+          longitude,
+          timestamp: new Date().toISOString(),
+        }),
+      );
+    }
+
+    res.json({ success: true, id: saved.insertedId });
+  } catch (err) {
+    console.error("Error submit sighting:", err);
+    res.status(500).json({ error: "Failed to submit sighting" });
   }
 });
 

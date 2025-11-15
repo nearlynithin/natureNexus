@@ -63,3 +63,12 @@ export async function detectObjectsInImage(filePath) {
   console.log("Converted bounding boxes:", converted);
   return { width, height, boxes: converted };
 }
+
+export async function detectObjectsInImageBase64(base64) {
+  const buffer = Buffer.from(base64.split(",")[1], "base64");
+  const temp = "./temp_sighting.jpg";
+  await fs.promises.writeFile(temp, buffer);
+  const result = await detectObjectsInImage(temp);
+  await fs.promises.unlink(temp);
+  return result;
+}
