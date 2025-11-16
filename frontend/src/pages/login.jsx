@@ -9,6 +9,7 @@ function Login() {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
+    const SERVER_HOST = import.meta.env.SERVER_HOST || "localhost";
     e.preventDefault();
     setError("");
 
@@ -20,7 +21,7 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/auth/login", {
+      const response = await fetch(`http://${SERVER_HOST}:3000/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

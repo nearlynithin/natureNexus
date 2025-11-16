@@ -364,6 +364,8 @@ app.get("/users/me", authenticateToken, async (req, res) => {
       name: user.name,
       phone: user.phone,
       address: user.address,
+      latitude: user.latitude || null,
+      longitude: user.longitude || null,
       role: user.role,
     });
   } catch (error) {

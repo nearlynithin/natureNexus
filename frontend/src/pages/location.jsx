@@ -9,7 +9,14 @@ const markerIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
-function Location() {
+const reportIcon = new L.Icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+function Location({ reports = [] }) {
   const [coords, setCoords] = useState({ latitude: null, longitude: null });
 
   useEffect(() => {
@@ -37,8 +44,7 @@ function Location() {
     );
   }, []);
 
-  if (coords.latitude === null || coords.longitude === null)
-    return <p>Getting your location...</p>;
+  if (coords.latitude === null) return <p>Getting your location...</p>;
 
   return (
     <div className="h-[400px] w-[400px] rounded-xl overflow-hidden shadow-md">
@@ -48,10 +54,19 @@ function Location() {
         className="h-full w-full"
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
         <Marker
           position={[coords.latitude, coords.longitude]}
           icon={markerIcon}
         />
+
+        {reports.map((r, i) => (
+          <Marker
+            key={i}
+            position={[r.latitude, r.longitude]}
+            icon={reportIcon}
+          />
+        ))}
       </MapContainer>
     </div>
   );
