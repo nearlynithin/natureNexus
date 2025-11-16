@@ -3,6 +3,7 @@ import Home from "./pages/home";
 import Messenger from "./components/messenger";
 import Location from "./pages/location";
 import Register from "./components/register";
+import SightingReport from "./components/report";
 import Login from "./pages/login";
 import Admin from "./pages/Admin";
 
@@ -16,6 +17,7 @@ function App() {
         <Route path="/message" element={<Messenger />} />
         <Route path="/location" element={<Location />} />
         <Route path="/image" element={<Admin />} />
+        <Route path="/report" element={<SightingReport />} />
       </Routes>
     </>
   );

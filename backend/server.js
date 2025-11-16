@@ -604,14 +604,14 @@ app.post("/sightings/report", authenticateToken, async (req, res) => {
     let detection;
     if (process.env.USE_STUB === "1") {
       console.log("not using gemini");
-      detection = { result: [{ label: "animal" }] };
+      detection = { boxes: [{ label: "animal" }] };
     } else {
       detection = await detectObjectsInImageBase64(image);
     }
 
     const foundAnimal =
-      Array.isArray(detection.result) &&
-      detection.result.some((r) => r.label === "animal");
+      Array.isArray(detection.boxes) &&
+      detection.boxes.some((r) => r.label === "animal");
 
     if (foundAnimal) {
       console.log("Found animal, broadcasting...");
@@ -625,6 +625,7 @@ app.post("/sightings/report", authenticateToken, async (req, res) => {
           timestamp: new Date().toISOString(),
         }),
       );
+      console.log("broadcast sent");
     }
 
     res.json({ success: true, id: saved.insertedId });
