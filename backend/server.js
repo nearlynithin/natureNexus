@@ -7,7 +7,7 @@ import ws, { WebSocketServer } from "ws";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
-import { haversine } from "./haversine.js";
+import { haversine, getNearbyUserIdsFromCoords } from "./haversine.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cors from "cors";
@@ -401,31 +401,23 @@ app.get("/nearby", authenticateToken, async (req, res) => {
     return;
   }
 
-  const allUsers = await users.find({}).toArray();
-  const nearby = allUsers
-    .filter((u) => {
-      if (
-        currentUser.phone == u.phone ||
-        u.latitude == null ||
-        u.longitude == null
-      )
-        return false;
-      const dist = haversine(
-        currentUser.latitude,
-        currentUser.longitude,
-        u.latitude,
-        u.longitude,
-      );
-      return dist / 1000 < 6;
-    })
-    .map((u) => ({
+  const nearbyIds = await getNearbyUserIdsFromCoords(
+    currentUser.latitude,
+    currentUser.longitude,
+  );
+  const nearbyUsers = await db
+    .collection("users")
+    .find({ _id: { $in: nearbyIds.map((id) => new ObjectId(id)) } })
+    .toArray();
+
+  res.json(
+    nearbyUsers.map((u) => ({
       id: u._id.toString(),
       name: u.name,
       phone: u.phone,
       role: u.role,
-    }));
-
-  res.json(nearby);
+    })),
+  );
 });
 
 // Get message history
@@ -614,18 +606,27 @@ app.post("/sightings/report", authenticateToken, async (req, res) => {
       detection.boxes.some((r) => r.label === "animal");
 
     if (foundAnimal) {
-      console.log("Found animal, broadcasting...");
-      broadcast(
-        JSON.stringify({
-          type: "animal_sighting",
-          id: saved.insertedId.toString(),
-          senderName: req.user.name,
-          latitude,
-          longitude,
-          timestamp: new Date().toISOString(),
-        }),
-      );
-      console.log("broadcast sent");
+      const nearbyIds = await getNearbyUserIdsFromCoords(latitude, longitude);
+      console.log(nearbyIds);
+
+      for (const [wsClient, userInfo] of connectedClients.entries()) {
+        if (
+          wsClient.readyState === ws.OPEN &&
+          nearbyIds.includes(userInfo.userId)
+        ) {
+          console.log("Sending broadcast within 6km");
+          wsClient.send(
+            JSON.stringify({
+              type: "animal_sighting",
+              id: saved.insertedId.toString(),
+              senderName: req.user.name,
+              latitude,
+              longitude,
+              timestamp: new Date().toISOString(),
+            }),
+          );
+        }
+      }
     }
 
     res.json({ success: true, id: saved.insertedId });

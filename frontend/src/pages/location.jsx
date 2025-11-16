@@ -14,9 +14,23 @@ function Location() {
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const { latitude, longitude } = pos.coords;
         setCoords({ latitude, longitude });
+
+        const token = localStorage.getItem("token");
+        try {
+          await fetch("http://localhost:3000/location", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ latitude, longitude }),
+          });
+        } catch (err) {
+          console.error("Failed to update location:", err);
+        }
       },
       (err) => console.error("Geolocation error:", err),
       { enableHighAccuracy: true },
