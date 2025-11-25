@@ -6,6 +6,7 @@ import Register from "./components/register";
 import SightingReport from "./components/report";
 import Login from "./pages/login";
 import Admin from "./pages/Admin";
+import WaterMap from "./pages/watermap";
 
 function App() {
   return (
@@ -18,6 +19,8 @@ function App() {
         <Route path="/location" element={<Location />} />
         <Route path="/image" element={<Admin />} />
         <Route path="/report" element={<SightingReport />} />
+        <Route path="/watermap" element={<WaterMap />} />
+
       </Routes>
     </>
   );

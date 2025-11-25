@@ -13,6 +13,9 @@ import jwt from "jsonwebtoken";
 import cors from "cors";
 import { ObjectId } from "mongodb";
 import { detectObjectsInImage, detectObjectsInImageBase64 } from "./image.js";
+import Water from "./water.js";
+import mongoose from "mongoose";
+mongoose.connect(process.env.DB_URI + "/" + process.env.DB_NAME);
 
 /** @typedef {import('../types.d.ts').User} User */
 
@@ -637,6 +640,31 @@ app.post("/sightings/report", authenticateToken, async (req, res) => {
     res.status(500).json({ error: "Failed to submit sighting" });
   }
 });
+(async () => {
+  const water = await db.collection("waters").find().toArray();
+  console.log("Water data:", water);
+})();
+
+
+
+app.post("/water", async (req, res) => {
+  const data = new Water(req.body);
+  await data.save();
+  res.json({ status: "OK" });
+});
+
+
+
+// GET → retrieve all water points
+app.get("/water", async (req, res) => {
+  try {
+    const data = await Water.find();
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err });
+  }
+});
+
 
 server.listen(port, () => {
   console.log(`Server running on port: ${port}`);

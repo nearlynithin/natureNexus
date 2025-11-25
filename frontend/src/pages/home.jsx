@@ -77,8 +77,21 @@ function Home() {
                 href="register"
                 className="text-green-700 hover:text-green-900 font-medium"
               >
+<<<<<<< HEAD
                 Sign Up
               </a>
+=======
+                
+                Sign Up
+              </a>
+            <a
+                 href="watermap"
+                 className="text-green-700 hover:text-green-900 font-medium"
+             >
+                Water Map
+           </a>
+
+>>>>>>> 852e8a0 (chore: merge)
             </div>
           </div>
         </div>
@@ -143,7 +156,7 @@ function Home() {
             </div>
           </section>
         )}
-        )}
+        
         {/* Other Features */}
         <div>
           <h2 className="text-2xl font-semibold text-green-800 mb-4 text-center">
@@ -179,6 +192,12 @@ function Home() {
                 Connect with rangers and enthusiasts
               </p>
             </a>
+<<<<<<< HEAD
+=======
+           
+
+
+>>>>>>> 852e8a0 (chore: merge)
           </div>
         </div>
         {/* Profile Section */}
