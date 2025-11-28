@@ -47,7 +47,7 @@ function Location({ reports = [] }) {
   if (coords.latitude === null) return <p>Getting your location...</p>;
 
   return (
-    <div className="h-[400px] w-[400px] rounded-xl overflow-hidden shadow-md">
+    <div className="h-[350px] w-[350px] rounded-xl overflow-hidden shadow-md">
       <MapContainer
         center={[coords.latitude, coords.longitude]}
         zoom={15}

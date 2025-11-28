@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Location from "./location";
-
+import ImageViewer from "../components/image";
 import "leaflet/dist/leaflet.css";
 
 function Home() {
@@ -77,16 +77,14 @@ function Home() {
                 href="register"
                 className="text-green-700 hover:text-green-900 font-medium"
               >
-                
                 Sign Up
               </a>
-            <a
-                 href="watermap"
-                 className="text-green-700 hover:text-green-900 font-medium"
-             >
+              <a
+                href="watermap"
+                className="text-green-700 hover:text-green-900 font-medium"
+              >
                 Water Map
-           </a>
-
+              </a>
             </div>
           </div>
         </div>
@@ -139,19 +137,20 @@ function Home() {
                     </p>
                   </div>
 
-                  <div className="p-4">
+                  <div className="p-2">
                     <Location
                       reports={[
                         { latitude: a.latitude, longitude: a.longitude },
                       ]}
                     />
+                    <ImageViewer image={a.image} boxes={a.boxes || []} />
                   </div>
                 </div>
               ))}
             </div>
           </section>
         )}
-        
+
         {/* Other Features */}
         <div>
           <h2 className="text-2xl font-semibold text-green-800 mb-4 text-center">
@@ -187,9 +186,6 @@ function Home() {
                 Connect with rangers and enthusiasts
               </p>
             </a>
-           
-
-
           </div>
         </div>
         {/* Profile Section */}

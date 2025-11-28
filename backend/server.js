@@ -601,7 +601,7 @@ app.post("/sightings/report", authenticateToken, async (req, res) => {
     let detection;
     if (process.env.USE_STUB === "1") {
       console.log("not using gemini");
-      detection = { boxes: [{ label: "animal" }] };
+      detection = { boxes: [{ label: "animal", box: [43, 82, 161, 126] }] };
     } else {
       detection = await detectObjectsInImageBase64(image);
     }
@@ -611,7 +611,11 @@ app.post("/sightings/report", authenticateToken, async (req, res) => {
       detection.boxes.some((r) => r.label === "animal");
 
     if (foundAnimal) {
-      const nearbyIds = await getNearbyUserIdsFromCoords(latitude, longitude);
+      const nearbyIds = await getNearbyUserIdsFromCoords(
+        latitude,
+        longitude,
+        1000,
+      );
       console.log(nearbyIds);
 
       for (const [wsClient, userInfo] of connectedClients.entries()) {
@@ -627,6 +631,8 @@ app.post("/sightings/report", authenticateToken, async (req, res) => {
               senderName: req.user.name,
               latitude,
               longitude,
+              image,
+              boxes: detection.boxes,
               timestamp: new Date().toISOString(),
             }),
           );
@@ -645,15 +651,11 @@ app.post("/sightings/report", authenticateToken, async (req, res) => {
   console.log("Water data:", water);
 })();
 
-
-
 app.post("/water", async (req, res) => {
   const data = new Water(req.body);
   await data.save();
   res.json({ status: "OK" });
 });
-
-
 
 // GET → retrieve all water points
 app.get("/water", async (req, res) => {
@@ -664,7 +666,6 @@ app.get("/water", async (req, res) => {
     res.status(500).json({ success: false, error: err });
   }
 });
-
 
 server.listen(port, () => {
   console.log(`Server running on port: ${port}`);

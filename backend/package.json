@@ -18,12 +18,8 @@
     "express": "^5.1.0",
     "image-size": "^2.0.2",
     "jsonwebtoken": "^9.0.2",
-<<<<<<< HEAD
     "mongodb": "^6.20.0",
-=======
-    "mongodb": "^6.21.0",
     "mongoose": "^9.0.0",
->>>>>>> 852e8a0 (chore: merge)
     "multer": "^2.0.2",
     "ws": "^8.18.3"
   }
