@@ -572,8 +572,12 @@ app.post("/detect", upload.single("image"), async (req, res) => {
   try {
     console.log("Sending image ...");
     const result = await detectObjectsInImage(req.file.path);
-    // return     { label: b.label, box: [absX1, absY1, absX2, absY2] };
-    res.json({ success: true, result });
+    if (result.boxes.length === 0) {
+      res.json({ success: false, result });
+    } else {
+      // return     { label: b.label, box: [absX1, absY1, absX2, absY2] };
+      res.json({ success: true, result });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -607,8 +611,7 @@ app.post("/sightings/report", authenticateToken, async (req, res) => {
     }
 
     const foundAnimal =
-      Array.isArray(detection.boxes) &&
-      detection.boxes.some((r) => r.label === "animal");
+      Array.isArray(detection.boxes) && detection.boxes.length !== 0;
 
     if (foundAnimal) {
       const nearbyIds = await getNearbyUserIdsFromCoords(

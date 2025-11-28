@@ -23,7 +23,7 @@ export async function detectObjectsInImage(filePath) {
   const mimeType = "image/png";
 
   const prompt =
-    "Detect any animals in the image" +
+    "Detect any wild animals in the image, if present label as the name of that animal, else NULL" +
     "The box_2d should be [ymin, xmin, ymax, xmax] normalized to 0-1000.";
 
   const contents = [
@@ -43,7 +43,10 @@ export async function detectObjectsInImage(filePath) {
 
   let text = response.text;
   const match = text.match(/\[[\s\S]*\]/);
-  if (!match) throw new Error("No JSON array found in response");
+  if (!match) {
+    console.log(Error("No JSON array found in response"));
+    return { boxes: [] };
+  }
 
   console.log(match[0]);
   const boxes = JSON.parse(match[0]);
