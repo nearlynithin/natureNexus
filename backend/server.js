@@ -584,6 +584,19 @@ app.post("/detect", upload.single("image"), async (req, res) => {
   }
 });
 
+app.get("/analytics/sightings", async (req, res) => {
+  try {
+    const all = await db
+      .collection("sightings")
+      .find({})
+      .sort({ timestamp: -1 })
+      .toArray();
+    res.json({ success: true, data: all });
+  } catch (e) {
+    res.status(500).json({ success: false });
+  }
+});
+
 app.post("/sightings/report", authenticateToken, async (req, res) => {
   try {
     const { content, image, latitude, longitude } = req.body;
@@ -605,13 +618,14 @@ app.post("/sightings/report", authenticateToken, async (req, res) => {
     let detection;
     if (process.env.USE_STUB === "1") {
       console.log("not using gemini");
-      detection = { boxes: [{ label: "animal", box: [43, 82, 161, 126] }] };
+      detection = { boxes: [{ label: "fox", box: [43, 82, 161, 126] }] };
     } else {
       detection = await detectObjectsInImageBase64(image);
     }
 
     const foundAnimal =
       Array.isArray(detection.boxes) && detection.boxes.length !== 0;
+    console.log(detection);
 
     if (foundAnimal) {
       const nearbyIds = await getNearbyUserIdsFromCoords(
